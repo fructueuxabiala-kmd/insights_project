@@ -3,7 +3,7 @@
 import app from "./app.js";
 import { connectdb } from "./db/connect.js";
  
-PORT = process.env.PORT ?? 3001
+const PORT=process.env.PORT ?? 3001
 
 await connectdb()
 
