@@ -1,6 +1,21 @@
-import Router from "express"
+import { Router } from "express";
+import * as BookmarkController from "../controllers/bookmark.controller.js";
+import { requireAuth } from "../middlewares/requireAuth.js";
 
-const router = Router()
+const router = Router();
 
+// ajouter / retirer favoris
+router.post(
+  "/:quoteId",
+  requireAuth,
+  BookmarkController.toggle
+);
 
-export default router
+// voir mes favoris
+router.get(
+  "/me",
+  requireAuth,
+  BookmarkController.myBookmarks
+);
+
+export default router;

@@ -1,4 +1,4 @@
-import{ registerUser,getUserProfile } from "../services/auth.service.js"
+import{ registerUser,getUserProfile,loginUser,updateUserProfile } from "../services/auth.service.js"
 
 export async function register(req,res,next){
     try {
@@ -25,5 +25,19 @@ export const getMe = async (req, res) => {
     res.json(user);
   } catch (error) {
     res.status(404).json({ message: "Utilisateur non trouvé" });
+  }
+};
+
+export const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.sub; // venant du middleware JWT
+    const updatedUser = await updateUserProfile(userId, req.body);
+
+    res.json({
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+  } catch (err) {
+    next(err);
   }
 };

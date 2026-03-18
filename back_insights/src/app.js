@@ -4,6 +4,9 @@ dotenv.config()
 import express from "express"
 import cors from "cors"
 import apiRoutes from "./routes/index.js"
+import { requireAuth } from "./middlewares/requireAuth.js"
+import { notFound } from "./middlewares/notFound.js"
+import { errorHandler } from "./middlewares/errorHandler.js"
 
 const app = express()
 
@@ -15,5 +18,11 @@ app.get("/", (req,res)=>{
 })
 
 app.use("/api", apiRoutes)
+app.use(requireAuth)
+
+
+app.use(notFound)
+
+app.use(errorHandler)
 
 export default app

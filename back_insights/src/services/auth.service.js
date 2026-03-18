@@ -52,14 +52,14 @@ export async function loginUser({email,password}){
     }
 
     const normalizedEmail = email.trim().toLocaleLowerCase()
-    const user = await User.findOne({email: normalizedEmail}).select("+passwordHash");
+    const user = await User.findOne({email: normalizedEmail}).select("+password");
     if(!user){
         const err = new Error("Invalid Credentials");
         err.statusCode = 401;
         throw err
     }
 
-    const ok = await bcrypt.compare(password, user.passwordHash)
+    const ok = await bcrypt.compare(password, user.password)
 
     if(!ok){
         const err = new Error("Invalid Credentials")
@@ -89,5 +89,78 @@ export const getUserProfile = async (id) => {
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'secret_key', { expiresIn: '30d' });
 };
+
+
+export async function updateUserProfile(userId, data) {
+  const { username, email, password, bio, avatar } = data;
+
+  // Vérifier que l'utilisateur existe
+  const user = await User.findById(userId).select("+password");
+  if (!user) {
+    const err = new Error("User not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  /* ======================
+     VALIDATIONS
+  ====================== */
+
+  if (username !== undefined) {
+    if (typeof username !== "string" || username.trim().length < 3) {
+      const err = new Error("username must be at least 3 characters");
+      err.statusCode = 400;
+      throw err;
+    }
+    user.username = username.trim();
+  }
+
+  if (email !== undefined) {
+    if (typeof email !== "string" || !email.includes("@")) {
+      const err = new Error("email is invalid");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Vérifier si email déjà utilisé par un autre user
+    const existing = await User.findOne({
+      email: normalizedEmail,
+      _id: { $ne: userId }
+    });
+
+    if (existing) {
+      const err = new Error("email already in use");
+      err.statusCode = 409;
+      throw err;
+    }
+
+    user.email = normalizedEmail;
+  }
+
+  // Mise à jour du mot de passe (optionnel)
+  if (password !== undefined) {
+    if (typeof password !== "string" || password.length < 6) {
+      const err = new Error("password must be at least 6 characters");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+  }
+
+  if (bio !== undefined) {
+    user.bio = bio;
+  }
+
+  if (avatar !== undefined) {
+    user.avatar = avatar;
+  }
+
+  await user.save();
+
+  return user.toJSON();
+}
 
 

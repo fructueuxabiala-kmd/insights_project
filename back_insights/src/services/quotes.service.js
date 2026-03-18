@@ -1,5 +1,6 @@
 import {Quote} from "../models/Quote.js";
 
+
 // Créer une citation
 export const createQuote = async (data, userId) => {
     const quote = new Quote({
@@ -49,22 +50,25 @@ export const deleteQuote = async (id, userId) => {
     if (!result) throw new Error("Suppression impossible : non autorisée");
     return result;
 };
+export const searchQuotes = async (query) => {
+  const filter = {};
 
-// Gérer les likes
-export const toggleLike = async (quoteId, userId) => {
-    const quote = await Quote.findById(quoteId);
-    if (!quote) throw new Error("Citation introuvable");
+  if (query.keyword) {
+    filter.text = { $regex: query.keyword, $options: "i" };
+  }
 
-    const index = quote.likes.indexOf(userId);
+  if (query.tag) {
+    filter.tags = query.tag;
+  }
 
-    if (index === -1) {
-        quote.likes.push(userId);
-        quote.likesCount += 1;
-    } else {
-        quote.likes.splice(index, 1);
-        quote.likesCount -= 1;
-    }
+  if (query.user) {
+    filter.author = query.user;
+  }
 
-    await quote.save();
-    return { likesCount: quote.likesCount, isLiked: index === -1 };
+  return await Quote.find(filter)
+    .populate("author", "username avatar");
 };
+
+
+
+

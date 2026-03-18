@@ -1,10 +1,10 @@
 
-import {createQuote,getAllQuotes,getQuoteById,updateQuote,deleteQuote,toggleLike} from "../services/quotes.service.js"
+import {createQuote,getAllQuotes,getQuoteById,updateQuote,deleteQuote, searchQuotes} from "../services/quotes.service.js"
 
  const create = async (req, res) => {
     try {
         // req.user.id vient de ton middleware d'authentification
-        const quote = await createQuote(req.body, req.user.id);
+        const quote = await createQuote(req.body, req.user.sub);
         res.status(201).json(quote);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -49,21 +49,16 @@ import {createQuote,getAllQuotes,getQuoteById,updateQuote,deleteQuote,toggleLike
     }
 
 };
-const handleLike = async (req, res) => {
-try {
-   const result = await QuoteService.toggleLike(req.params.id, req.user.id);
-   res.status(200).json(result);
-} catch (error) {
-   res.status(400).json({ message: error.message });
-}
 
+ const search = async (req, res) => {
+  const results = await searchQuotes(req.query);
+  res.json(results);
 };
-
 export {
     create,
     findAll,
     findOne,
     update,
     deleteQ,
-    handleLike
+    search
 }
